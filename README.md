@@ -20,5 +20,6 @@ Todo está en `index.html`, bloque `CONFIGURACIÓN`:
 - `img`: foto cuadrada ~560 px en `img/`.
 - `temporada:true` marca productos navideños.
 - `agotado:true` oculta el botón de compra (muestra "Agotado").
+- `NAVIDAD` (arriba en la configuración): activa la temporada, la cuenta regresiva y el filtro 🎄. Poner `activa:false` en enero.
 
 Cada cambio en la rama `main` se publica solo en 1–2 minutos (GitHub Pages).
