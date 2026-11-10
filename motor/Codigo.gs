@@ -9,11 +9,12 @@
  * - Fotos nuevas: súbelas a la carpeta de Drive "Nasao · Fotos nuevas" → se crea la fila sola
  *   (Estado "Oculta"); llenas nombre, talla y precio y la pones "Disponible".
  */
+var HOJA_ID = '1YedFQEEl1HISLeV4iMc8A6mlQtKzoJnVBvjv2XRF8ek';
 var HORAS_APARTADO = 24;
 var CARPETA_FOTOS = 'Nasao · Fotos nuevas';
 var COL = {ref:1, cat:2, nombre:3, desc:4, talla:5, precio:6, foto:7, temporada:8, estado:9, desde:10};
 
-function hoja_(n) { return SpreadsheetApp.getActive().getSheetByName(n); }
+function hoja_(n) { return SpreadsheetApp.openById(HOJA_ID).getSheetByName(n); }
 
 /* ---------- La web pide el catálogo ---------- */
 function doGet(e) {
@@ -61,7 +62,7 @@ function doPost(e) {
 }
 
 /* ---------- Cambios hechos a mano en la hoja (también desde el celular) ---------- */
-function onEdit(e) {
+function alEditar(e) {
   var sh = e.range.getSheet(), n = sh.getName();
   if (n === 'Pedidos' && e.range.getColumn() === 12 && e.range.getRow() > 1) {
     var ref = sh.getRange(e.range.getRow(), 5).getValue(), v = String(e.value || '');
@@ -108,4 +109,9 @@ function limpio_(s, max) { return String(s || '').replace(/^[=+\-@]/, "'$&").sli
 function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
 /* Ejecuta esto UNA vez desde el editor para autorizar Drive y crear la carpeta de fotos. */
-function configurar() { importarFotos_(); SpreadsheetApp.getActive().toast('Motor Nasao listo ✅'); }
+function configurar() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('alEditar').forSpreadsheet(HOJA_ID).onEdit().create();
+  CacheService.getScriptCache().remove('fotos'); importarFotos_();
+  Logger.log('Motor Nasao listo ✅');
+}
