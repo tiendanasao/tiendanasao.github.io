@@ -124,6 +124,7 @@ img{display:block;max-width:100%}
 .name{font-weight:900;font-size:15px;line-height:1.2}
 .desc{font-size:12.5px;color:var(--muted)}
 .size{font-size:12.5px;margin-top:2px}
+.units{color:var(--pine);font-weight:800}
 .size b{display:inline-block;background:#fdf0e3;border:1px solid var(--line-2);color:var(--berry);border-radius:6px;padding:0 6px;font-size:12px}
 .price-row{margin-top:auto;padding-top:8px}
 .price{font-family:Fredoka,Nunito,sans-serif;font-weight:700;font-size:21px;color:var(--red-d);line-height:1}
@@ -472,7 +473,7 @@ function render(){
       '<div class="badge"><span class="b-cat">'+catName(p.cat)+'</span>'+(esTemp(p)?'<span class="b-xm">'+TEMP.insignia+'</span>':'')+'</div>'+
       '<span class="ref">'+p.ref+'</span></div>'+
       '<div class="info"><div class="name">'+esc(p.nombre)+'</div><div class="desc">'+esc(p.desc)+'</div>'+
-      '<div class="size">Talla: <b>'+tallaTxt(p)+'</b></div>'+
+      '<div class="size">Talla: <b>'+tallaTxt(p)+'</b>'+(!p.agotado && p.disp>1 ? ' · <span class="units">'+p.disp+' disponibles</span>':'')+'</div>'+
       '<div class="price-row"><div class="price">'+fmt(p.precio)+'</div><div class="gift">🎁 Ideal para regalar</div></div>'+
       btnHTML(p)+'</div>';
     c.querySelector(".ph").onclick = function(){ openProduct(p); };
@@ -496,7 +497,9 @@ function refreshButtons(){
 /* ---- Carrito ---- */
 var toastT;
 function toast(t){ var el=$("toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(function(){el.classList.remove("on")},1800); }
+function maxDe(p){ return p.disp==null ? 99 : p.disp; }
 function add(p){
+  if((cart[p.ref]||0) >= maxDe(p)){ toast(maxDe(p)===1 ? "Solo hay 1 unidad de "+p.nombre : "Solo hay "+maxDe(p)+" unidades de "+p.nombre); return; }
   cart[p.ref] = (cart[p.ref]||0)+1; save(); refreshButtons(); updBar(true);
   toast("¡"+p.nombre+" agregado a tu pedido! 🎁");
   if(navigator.vibrate) try{navigator.vibrate(18)}catch(e){}
@@ -535,7 +538,7 @@ function renderCart(){
       '<div class="qty"><button aria-label="Quitar uno">−</button><span>'+cart[r]+'</span><button aria-label="Agregar uno">+</button></div>';
     var b=d.querySelectorAll(".qty button");
     b[0].onclick=function(){ cart[r]--; if(cart[r]<=0) delete cart[r]; save(); renderCart(); refreshButtons(); updBar(); };
-    b[1].onclick=function(){ cart[r]++; save(); renderCart(); refreshButtons(); updBar(true); };
+    b[1].onclick=function(){ if(cart[r] >= maxDe(p)){ toast("No hay más unidades disponibles"); return; } cart[r]++; save(); renderCart(); refreshButtons(); updBar(true); };
     box.appendChild(d);
   });
   /* Sugerencias: productos que aún no están en el pedido (primero los de temporada) */
@@ -636,8 +639,8 @@ function construirFiltros(){
 /* ---- Motor: catálogo en vivo ---- */
 function aplicarMotor(lista){
   if(!lista || !lista.length) return;
-  PRODUCTOS = lista.map(function(p){ return {ref:p.ref, cat:p.cat, nombre:p.nombre, desc:p.desc, talla:p.talla, precio:p.precio, img:p.img, temporada:p.temporada||"", agotado:!!p.apartada, apartada:!!p.apartada}; });
-  for(var r in cart){ var x=byRef(r); if(!x||x.apartada) delete cart[r]; } save();
+  PRODUCTOS = lista.map(function(p){ return {ref:p.ref, cat:p.cat, nombre:p.nombre, desc:p.desc, talla:p.talla, precio:p.precio, img:p.img, temporada:p.temporada||"", agotado:!!p.apartada, apartada:!!p.apartada, disp:(p.disp==null?1:p.disp)}; });
+  for(var r in cart){ var x=byRef(r); if(!x||x.apartada) delete cart[r]; else if(cart[r]>x.disp) cart[r]=x.disp; } save();
   construirFiltros(); render(); updBar();
 }
 function cargarMotor(cb){
