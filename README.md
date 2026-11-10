@@ -30,3 +30,11 @@ Todo está en `index.html`, bloque `CONFIGURACIÓN`:
 - `TEMPORADAS`: la web es general; cada temporada (Navidad, Día de la Madre, Amor y Amistad…) se activa sola por fecha y pone su frase, cuenta regresiva, filtro y ambiente (nieve solo en Navidad). Fuera de temporada la web queda neutra.
 
 Cada cambio en la rama `main` se publica solo en 1–2 minutos (GitHub Pages).
+
+## Motor (Google Sheets + Apps Script)
+- Hoja "Nasao · Motor del catálogo" (Drive de Daniel): pestañas **Productos** (catálogo en vivo) y **Pedidos** (privada).
+- Código del motor: `motor/Codigo.gs` (pegado en Extensiones → Apps Script de la hoja, implementado como aplicación web "Cualquier persona").
+- La URL de la implementación va en `var MOTOR = "..."` de `index.html`. Vacío = la web usa la lista `PRODUCTOS` como respaldo.
+- Estados de prenda: Disponible · Apartada (24 h, vuelve sola) · Vendida (sale de la web) · Oculta.
+- Pedidos: Pagado/Entregado → prenda Vendida; Cancelado → Disponible.
+- Fotos nuevas: subir a la carpeta de Drive "Nasao · Fotos nuevas" → aparece fila nueva en Productos como "Oculta".
