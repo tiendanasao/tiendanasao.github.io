@@ -400,7 +400,7 @@ function norm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]}); }
 
 /* ---- WhatsApp general links ---- */
-["heroWa","helpWa","footWa","fab"].forEach(function(id){ $(id).href = waLink("¡Hola Nasao! 👋 Vi el catálogo y quiero información."); });
+["heroWa","helpWa","footWa","fab"].forEach(function(id){ $(id).href = waLink("¡Hola Nasao! Vi el catálogo y quiero información."); });
 $("yr").textContent = new Date().getFullYear();
 
 /* ---- Capa de temporada ---- */
@@ -514,10 +514,10 @@ function updBar(bump){
   if(bump){ var b=$("nItems"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); }
 }
 function message(){
-  var t = totals(), L = ["¡Hola Nasao! 👋 Quiero hacer este pedido ("+pedidoId+"):",""];
+  var t = totals(), L = ["¡Hola Nasao! Quiero hacer este pedido ("+pedidoId+"):",""];
   for(var r in cart){ var p=byRef(r); L.push("• "+cart[r]+" x "+p.nombre+" ("+p.ref+") – Talla "+tallaTxt(p)+" – "+fmt(p.precio*cart[r])); }
   L.push("","*Total: "+fmt(t.total)+"*","");
-  if($("cGift").checked) L.push("🎁 Es para regalo");
+  if($("cGift").checked) L.push("*Es para regalo*");
   var nm=$("cName").value.trim(), ci=$("cCity").value.trim();
   if(nm) L.push("Nombre: "+nm);
   var ph=$("cPhone").value.trim(); if(ph) L.push("Celular: "+ph);
