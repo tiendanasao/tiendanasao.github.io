@@ -130,6 +130,9 @@ img{display:block;max-width:100%}
 .add:active{transform:translateY(3px);box-shadow:0 1px 0 var(--red-d)}
 .add.in{background:linear-gradient(180deg,#2bc069,var(--wa));box-shadow:0 4px 0 var(--wa-d)}
 .add.sold{background:#d6cbd1;box-shadow:none;cursor:default}
+.card.sold .ph img{filter:grayscale(.55) brightness(1.05)}
+.card.sold .ph:after{content:"VENDIDO";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);background:rgba(184,29,54,.92);color:#fff;font-weight:900;letter-spacing:2px;padding:6px 16px;border-radius:8px;border:2px solid #fff;font-size:15px}
+.card.sold .price{color:var(--muted);text-decoration:line-through}
 .empty{text-align:center;color:var(--muted);padding:40px 10px;display:none}
 
 /* Help banner */
@@ -351,10 +354,10 @@ var PRODUCTOS = [
   {ref:"NS-P07", cat:"pijamas", nombre:"Gatitas rosadas",   desc:"Esqueleto lila + short rosado de gatitas", talla:"L", precio:25000, img:"img/p-gatitas-rosa.webp"},
   {ref:"NS-P08", cat:"pijamas", nombre:"Ratoncito rojo",    desc:"Esqueleto azul rey + short rojo",        talla:"XL", precio:25000, img:"img/p-raton.webp"},
   {ref:"NS-P09", cat:"pijamas", nombre:"XOXO",              desc:"Esqueleto lila + short amarillo XOXO",   talla:"XL", precio:25000, img:"img/p-xoxo.webp"},
-  {ref:"NS-P10", cat:"pijamas", nombre:"Burrito azul",      desc:"Esqueleto azul oscuro + short de rayas", talla:"",   precio:25000, img:"img/p-burrito.webp"},
-  {ref:"NS-T01", cat:"batas",   nombre:"Bata corazones",    desc:"Bata de tiras rosada con corazones",     talla:"",   precio:25000, img:"img/t-corazones.webp"},
-  {ref:"NS-T02", cat:"batas",   nombre:"Bata moños",        desc:"Bata de tiras rosada con moños",         talla:"",   precio:25000, img:"img/t-monos.webp"},
-  {ref:"NS-T03", cat:"batas",   nombre:"Bata fresas",       desc:"Bata de tiras blanca con fresas",        talla:"",   precio:25000, img:"img/t-fresas.webp"},
+  {ref:"NS-P10", cat:"pijamas", nombre:"Burrito azul",      desc:"Esqueleto azul oscuro + short de rayas", talla:"",   precio:25000, img:"img/p-burrito.webp", agotado:true},
+  {ref:"NS-T01", cat:"batas",   nombre:"Bata corazones",    desc:"Bata de tiras rosa claro con corazones", talla:"XL",   precio:25000, img:"img/t-corazones.webp"},
+  {ref:"NS-T02", cat:"batas",   nombre:"Bata moños",        desc:"Bata de tiras rosada con moños",         talla:"",   precio:25000, img:"img/t-monos.webp", agotado:true},
+  {ref:"NS-T03", cat:"batas",   nombre:"Bata fresas",       desc:"Bata de tiras blanca con fresas",        talla:"M",   precio:25000, img:"img/t-fresas.webp"},
   {ref:"NS-B01", cat:"buzos",   nombre:"Conjunto cuadros",  desc:"Buzo blanco con bolsillo + short de cuadros", talla:"Única", precio:27000, img:"img/b-cuadros.webp", temporada:true},
   {ref:"NS-B02", cat:"buzos",   nombre:"Año Viejo",         desc:"Buzo blanco estampado decembrino",       talla:"Única", precio:27000, img:"img/b-anoviejo.webp", temporada:true},
   {ref:"NS-B03", cat:"buzos",   nombre:"Huevos y manteca",  desc:"Buzo blanco estampado navideño",         talla:"Única", precio:27000, img:"img/b-huevos.webp", temporada:true},
@@ -366,7 +369,7 @@ var PRODUCTOS = [
 
 var $ = function(id){return document.getElementById(id)};
 var fmt = function(n){return "$" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g,".")};
-var tallaTxt = function(p){return p.talla ? p.talla : "Consultar"};
+var tallaTxt = function(p){return p.talla ? p.talla : (p.agotado ? "—" : "Consultar")};
 var waLink = function(t){return "https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(t)};
 var catName = function(id){ for(var i=0;i<CATEGORIAS.length;i++) if(CATEGORIAS[i].id===id) return CATEGORIAS[i].nombre; return ""; };
 var store = {get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}}, set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -409,8 +412,8 @@ var catList = [{id:"todo",nombre:"Todo"}];
 if(hayTemporada && NAVIDAD.activa) catList.push({id:"navidad",nombre:"🎄 Navidad",cls:"xmas"});
 catList = catList.concat(CATEGORIAS);
 var tallas = [];
-PRODUCTOS.forEach(function(p){ var t = tallaTxt(p); if(tallas.indexOf(t)<0) tallas.push(t); });
-var orden = ["S/M","L","XL","Única","Consultar"];
+PRODUCTOS.forEach(function(p){ if(p.agotado) return; var t = tallaTxt(p); if(tallas.indexOf(t)<0) tallas.push(t); });
+var orden = ["S/M","M","L","XL","Única","Consultar"];
 tallas.sort(function(a,b){ return orden.indexOf(a)-orden.indexOf(b); });
 var sizeList = [{id:"todas",nombre:"Todas"}].concat(tallas.map(function(t){return {id:t,nombre:t}}));
 
@@ -429,17 +432,17 @@ function match(p){
   return true;
 }
 function btnHTML(p){
-  if(p.agotado) return '<button class="add sold" disabled>Agotado</button>';
+  if(p.agotado) return '<button class="add sold" disabled>¡Vendido! 💖</button>';
   return cart[p.ref] ? '<button class="add in" data-ref="'+p.ref+'">✓ En tu pedido ('+cart[p.ref]+')</button>'
                      : '<button class="add" data-ref="'+p.ref+'">🛍️ Lo quiero</button>';
 }
 function render(){
   var g = $("grid"), n = 0, k = 0;
   g.innerHTML = "";
-  PRODUCTOS.forEach(function(p){
+  PRODUCTOS.filter(function(p){return !p.agotado}).concat(PRODUCTOS.filter(function(p){return p.agotado})).forEach(function(p){
     if(!match(p)) return;
     n++;
-    var c = document.createElement("article"); c.className = "card"+(p.temporada?" xm":"");
+    var c = document.createElement("article"); c.className = "card"+(p.temporada?" xm":"")+(p.agotado?" sold":"");
     c.innerHTML =
       '<div class="ph"><img loading="lazy" decoding="async" src="'+p.img+'" alt="'+esc(p.nombre)+'">'+
       '<div class="badge"><span class="b-cat">'+catName(p.cat)+'</span>'+(p.temporada?'<span class="b-xm">🎄 Navidad</span>':'')+'</div>'+
