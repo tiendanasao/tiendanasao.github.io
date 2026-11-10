@@ -25,8 +25,8 @@ Todo está en `index.html`, bloque `CONFIGURACIÓN`:
 - `cat`: id de una de las `CATEGORIAS` (se agregan nuevas allí mismo).
 - `talla`: vacío = "Consultar".
 - `img`: foto cuadrada ~560 px en `img/`.
-- `temporada:true` marca productos navideños.
+- `temporada:"navidad"` marca un diseño de esa temporada (insignia y filtro solo mientras la temporada está activa).
 - `agotado:true` muestra "VENDIDO" temporalmente (normalmente se retira la prenda).
-- `NAVIDAD` (arriba en la configuración): activa la temporada, la cuenta regresiva y el filtro 🎄. Poner `activa:false` en enero.
+- `TEMPORADAS`: la web es general; cada temporada (Navidad, Día de la Madre, Amor y Amistad…) se activa sola por fecha y pone su frase, cuenta regresiva, filtro y ambiente (nieve solo en Navidad). Fuera de temporada la web queda neutra.
 
 Cada cambio en la rama `main` se publica solo en 1–2 minutos (GitHub Pages).
