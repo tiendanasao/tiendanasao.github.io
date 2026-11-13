@@ -84,6 +84,8 @@ img{display:block;max-width:100%}
 .trust div{flex:0 0 auto;display:flex;align-items:center;gap:7px;background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:800;color:var(--berry)}
 
 /* Controls */
+.controls.stuck{background:#fff8f1;box-shadow:0 6px 14px -10px rgba(60,20,40,.35)}
+.controls.stuck:before{content:"";position:absolute;left:0;right:0;bottom:100%;height:200px;background:#fff8f1}
 .controls{position:sticky;top:0;z-index:30;background:rgba(255,248,241,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1.5px solid var(--line);padding:10px 0 6px;margin-top:8px}
 .search{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line-2);border-radius:999px;padding:9px 14px;transition:border-color .2s,box-shadow .2s}
 .search:focus-within{border-color:var(--red);box-shadow:0 0 0 4px rgba(224,48,74,.12)}
@@ -192,7 +194,9 @@ footer a{color:var(--wa-d);font-weight:900;text-decoration:none}
 
 /* Toast */
 .toast{position:fixed;left:50%;top:14px;z-index:70;transform:translate(-50%,-140%);background:var(--ink);color:#fff;border-radius:999px;padding:10px 16px;font-weight:800;font-size:14px;box-shadow:0 10px 24px -8px rgba(0,0,0,.5);transition:transform .35s cubic-bezier(.2,.9,.3,1.2);white-space:nowrap;border:1.5px solid var(--gold)}
-.toast.on{transform:translate(-50%,0)}
+.toast{opacity:0;visibility:hidden;transition:transform .35s cubic-bezier(.2,.9,.3,1.2),opacity .25s,visibility 0s .35s}
+.toast.on{transform:translate(-50%,0);opacity:1;visibility:visible;transition:transform .35s cubic-bezier(.2,.9,.3,1.2),opacity .2s}
+.toast:empty{display:none}
 
 /* Overlays */
 .ov{position:fixed;inset:0;background:rgba(30,10,22,.6);z-index:50;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -284,6 +288,7 @@ footer a{color:var(--wa-d);font-weight:900;text-decoration:none}
   </div>
 </div>
 
+<div id="stickSentinel" style="height:1px;margin-bottom:-1px"></div>
 <div class="controls" id="catalogo">
   <div class="wrap">
     <label class="search">
@@ -770,35 +775,44 @@ document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ hide($("c
 $("openCart").onclick=function(){ renderCart(); show("cartOv"); cargarMotor(function(){ if($("cartOv").classList.contains("show")) renderCart(); }); };
 $("q").addEventListener("input",function(){ state.q=this.value; render(); });
 
-/* ---- Nieve ---- */
+/* ---- Nieve (suave: velocidad por tiempo, entra poco a poco y no se reinicia al hacer scroll) ---- */
 (function(){
-  var cv=$("snow"), ctx=cv.getContext("2d"), flakes=[], on=store.get("nasao_snow",true), raf=null, W=0, H=0, dpr=1;
+  var cv=$("snow"), ctx=cv.getContext("2d"), flakes=[], on=store.get("nasao_snow",true), raf=null, W=0, H=0, dpr=1, last=0, t0=0;
   if(!(TEMP && TEMP.nieve)){ cv.style.display="none"; return; }
   $("snowBtn").hidden = false;
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(reduce) on=false;
-  function size(){ dpr=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=innerHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
-  function make(top){ return {x:Math.random()*W, y:top?-10:Math.random()*H, r:1.2+Math.random()*2.6, s:.35+Math.random()*.9, w:Math.random()*6.28, a:.55+Math.random()*.45}; }
-  function init(){ size(); var n = W<640 ? 38 : 70; flakes=[]; for(var i=0;i<n;i++) flakes.push(make(false)); }
-  function tick(){
+  function size(){ dpr=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=Math.max(innerHeight, screen.height||0); cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  function make(top){ return {x:Math.random()*W, y:top?-8-Math.random()*40:Math.random()*H, r:1.1+Math.random()*2.3, s:16+Math.random()*30, w:Math.random()*6.28, ws:.4+Math.random()*.6, a:.5+Math.random()*.45}; }
+  function init(){ size(); var n = W<640 ? 34 : 64; flakes=[]; for(var i=0;i<n;i++) flakes.push(make(false)); }
+  function tick(now){
+    if(!last) last=now; if(!t0) t0=now;
+    var dt=Math.min((now-last)/1000, .05); last=now;
+    var fade=Math.min(1,(now-t0)/1800);
     ctx.clearRect(0,0,W,H);
     for(var i=0;i<flakes.length;i++){ var f=flakes[i];
-      f.y += f.s; f.w += .012; f.x += Math.sin(f.w)*.45;
+      f.y += f.s*dt; f.w += f.ws*dt; f.x += Math.sin(f.w)*12*dt;
       if(f.y>H+6){ flakes[i]=make(true); continue; }
+      if(f.x<-6) f.x=W+4; else if(f.x>W+6) f.x=-4;
       ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,6.283);
-      ctx.fillStyle="rgba(255,255,255,"+f.a+")"; ctx.fill();
-      ctx.lineWidth=.6; ctx.strokeStyle="rgba(150,170,205,.45)"; ctx.stroke();
+      ctx.fillStyle="rgba(255,255,255,"+(f.a*fade)+")"; ctx.fill();
+      ctx.lineWidth=.6; ctx.strokeStyle="rgba(150,170,205,"+(.45*fade)+")"; ctx.stroke();
     }
     raf=requestAnimationFrame(tick);
   }
-  function start(){ if(!raf && on && !document.hidden){ cv.style.display="block"; raf=requestAnimationFrame(tick); } }
+  function start(){ if(!raf && on && !document.hidden){ cv.style.display="block"; last=0; raf=requestAnimationFrame(tick); } }
   function stop(){ if(raf){ cancelAnimationFrame(raf); raf=null; } }
-  function apply(){ $("snowBtn").setAttribute("aria-pressed", on); if(on){ start(); } else { stop(); ctx.clearRect(0,0,W,H); cv.style.display="none"; } }
+  function apply(){ $("snowBtn").setAttribute("aria-pressed", on); if(on){ t0=0; start(); } else { stop(); ctx.clearRect(0,0,W,H); cv.style.display="none"; } }
   init(); apply();
-  addEventListener("resize",function(){ var r=!!raf; stop(); init(); if(r) start(); });
+  /* En el celular la barra del navegador cambia el alto al hacer scroll: solo se reinicia si cambia el ancho (girar el equipo). */
+  var lastW=W;
+  addEventListener("resize",function(){ if(Math.abs(innerWidth-lastW)<2) return; lastW=innerWidth; var r=!!raf; stop(); init(); if(r) start(); });
   document.addEventListener("visibilitychange",function(){ document.hidden ? stop() : start(); });
   $("snowBtn").onclick=function(){ on=!on; store.set("nasao_snow",on); apply(); };
 })();
+/* Barra de filtros: cuando queda pegada arriba tapa también la franja del reloj del celular */
+(function(){ var se=$("stickSentinel"); if(!se || !("IntersectionObserver" in window)) return;
+  new IntersectionObserver(function(es){ $("catalogo").classList.toggle("stuck", !es[0].isIntersecting); }).observe(se); })();
 
 function construirFiltros(){
   hayTemporada = PRODUCTOS.some(esTemp);
