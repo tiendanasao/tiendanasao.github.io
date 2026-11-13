@@ -137,7 +137,12 @@ img{display:block;max-width:100%}
 .card.sold .ph:after{content:"VENDIDO";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);background:rgba(184,29,54,.92);color:#fff;font-weight:900;letter-spacing:2px;padding:6px 16px;border-radius:8px;border:2px solid #fff;font-size:15px}
 .card.apt .ph:after{content:"APARTADA";background:rgba(201,149,42,.95)}
 .card.sold .price{color:var(--muted);text-decoration:line-through}
-.card.fam .ph{aspect-ratio:4/5}.card.fam .ph img{object-position:50% 12%}
+.grid{grid-auto-flow:row dense}
+.card.fam{grid-column:1/-1;flex-direction:row}
+.card.fam .ph{flex:0 0 46%;aspect-ratio:auto;min-height:100%;border-bottom:0;border-right:1.5px solid var(--line)}
+.card.fam .ph img{position:absolute;inset:0;object-position:50% 15%}
+.card.fam .info{min-width:0}
+@media(min-width:640px){.card.fam{grid-column:span 2}}
 .sp{font-size:11.5px;color:var(--berry);font-weight:800;margin-top:3px;line-height:1.3}
 .vars{display:flex;flex-direction:column;gap:6px;margin-top:9px}
 .var{display:flex;align-items:center;gap:6px;width:100%;border:1.5px solid var(--line-2);background:#fff;border-radius:11px;padding:7px 9px;font-size:13px;font-weight:800;color:inherit;text-align:left}
