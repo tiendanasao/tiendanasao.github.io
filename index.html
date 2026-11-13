@@ -137,6 +137,14 @@ img{display:block;max-width:100%}
 .card.sold .ph:after{content:"VENDIDO";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);background:rgba(184,29,54,.92);color:#fff;font-weight:900;letter-spacing:2px;padding:6px 16px;border-radius:8px;border:2px solid #fff;font-size:15px}
 .card.apt .ph:after{content:"APARTADA";background:rgba(201,149,42,.95)}
 .card.sold .price{color:var(--muted);text-decoration:line-through}
+.card.fam .ph{aspect-ratio:4/5}.card.fam .ph img{object-position:50% 12%}
+.sp{font-size:11.5px;color:var(--berry);font-weight:800;margin-top:3px;line-height:1.3}
+.vars{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.var{display:flex;align-items:center;gap:6px;width:100%;border:1.5px solid var(--line-2);background:#fff;border-radius:11px;padding:7px 9px;font-size:13px;font-weight:800;color:inherit;text-align:left}
+.var span{flex:1}.var b{color:var(--red)}
+.var i{font-style:normal;min-width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;font-size:14px}
+.var.in{border-color:var(--wa);background:#ecfbf1}.var.in i{background:var(--wa);font-size:12px}
+.minsp{font-size:11.5px;color:var(--muted);margin-top:6px;text-align:center}
 .empty{text-align:center;color:var(--muted);padding:40px 10px;display:none}
 
 /* Help banner */
@@ -327,6 +335,7 @@ footer a{color:var(--wa-d);font-weight:900;text-decoration:none}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2z"/></svg>
         Enviar pedido por WhatsApp
       </a>
+      <p class="note" id="minSP" style="display:none;color:#b81d36;font-weight:800"></p>
       <p class="note" id="faltan" style="display:none;color:#b81d36;font-weight:800">Escribe tu nombre y celular para enviar el pedido.</p>
       <p class="note">Se abre WhatsApp con tu pedido listo. Allí confirmamos disponibilidad, entrega y pago.</p>
     </div>
@@ -361,12 +370,29 @@ var TEMPORADAS = [
 var TEMP = (function(){ var h=new Date(), md=("0"+(h.getMonth()+1)).slice(-2)+"-"+("0"+h.getDate()).slice(-2);
   for(var i=0;i<TEMPORADAS.length;i++) if(md>=TEMPORADAS[i].desde && md<=TEMPORADAS[i].hasta) return TEMPORADAS[i]; return null; })();
 function esTemp(p){ return !!(TEMP && p.temporada===TEMP.id); }
+/* SOBRE PEDIDO: productos de esta categoría no tienen límite de unidades, piden un mínimo de conjuntos
+   (se pueden combinar diseños y tallas) y se agrupan en una tarjeta por diseño.
+   Refs: NS-F01M (Mujer) · NS-F01H (Hombre) · NS-F01N (Niño). "hasta" = último día para pedir para Navidad (mes-día). */
+var SOBRE_PEDIDO = {cat:"familia", minimo:3, llegada:"8 a 10 días", hasta:"12-12", hastaTxt:"12 de diciembre"};
 var CATEGORIAS = [
+  {id:"familia", nombre:"Pareja y familia"},
   {id:"pijamas", nombre:"Pijamas"},
   {id:"batas",   nombre:"Batas"},
   {id:"buzos",   nombre:"Buzos"}
 ];
 var PRODUCTOS = [
+  {ref:"NS-F01M", cat:"familia", nombre:"Cuadros Merry Christmas", desc:"Camiseta blanca + pantalón de cuadros rojos", talla:"Mujer", precio:39900, img:"img/f-cuadros.webp", temporada:"navidad"},
+  {ref:"NS-F01H", cat:"familia", nombre:"Cuadros Merry Christmas", desc:"Camiseta blanca + pantalón de cuadros rojos", talla:"Hombre", precio:48900, img:"img/f-cuadros.webp", temporada:"navidad"},
+  {ref:"NS-F01N", cat:"familia", nombre:"Cuadros Merry Christmas", desc:"Camiseta blanca + pantalón de cuadros rojos", talla:"Niño", precio:35900, img:"img/f-cuadros.webp", temporada:"navidad"},
+  {ref:"NS-F02M", cat:"familia", nombre:"Muñeco de nieve", desc:"Camiseta estampada + pantalón de cuadros rojo y negro", talla:"Mujer", precio:39900, img:"img/f-muneco.webp", temporada:"navidad"},
+  {ref:"NS-F02H", cat:"familia", nombre:"Muñeco de nieve", desc:"Camiseta estampada + pantalón de cuadros rojo y negro", talla:"Hombre", precio:48900, img:"img/f-muneco.webp", temporada:"navidad"},
+  {ref:"NS-F02N", cat:"familia", nombre:"Muñeco de nieve", desc:"Camiseta estampada + pantalón de cuadros rojo y negro", talla:"Niño", precio:35900, img:"img/f-muneco.webp", temporada:"navidad"},
+  {ref:"NS-F03M", cat:"familia", nombre:"Renito", desc:"Camiseta negra estampada + pantalón rojo con copos", talla:"Mujer", precio:39900, img:"img/f-renito.webp", temporada:"navidad"},
+  {ref:"NS-F03H", cat:"familia", nombre:"Renito", desc:"Camiseta negra estampada + pantalón rojo con copos", talla:"Hombre", precio:48900, img:"img/f-renito.webp", temporada:"navidad"},
+  {ref:"NS-F03N", cat:"familia", nombre:"Renito", desc:"Camiseta negra estampada + pantalón rojo con copos", talla:"Niño", precio:35900, img:"img/f-renito.webp", temporada:"navidad"},
+  {ref:"NS-F04M", cat:"familia", nombre:"Merry Grinchmas", desc:"Camiseta blanca + pantalón de cuadros verdes", talla:"Mujer", precio:39900, img:"img/f-grinch.webp", temporada:"navidad"},
+  {ref:"NS-F04H", cat:"familia", nombre:"Merry Grinchmas", desc:"Camiseta blanca + pantalón de cuadros verdes", talla:"Hombre", precio:48900, img:"img/f-grinch.webp", temporada:"navidad"},
+  {ref:"NS-F04N", cat:"familia", nombre:"Merry Grinchmas", desc:"Camiseta blanca + pantalón de cuadros verdes", talla:"Niño", precio:35900, img:"img/f-grinch.webp", temporada:"navidad"},
   {ref:"NS-P01", cat:"pijamas", nombre:"Gatitos lila",      desc:"Esqueleto azul + short lila de gatitos", talla:"S/M", precio:25000, img:"img/p-gatitos-lila.webp"},
   {ref:"NS-P02", cat:"pijamas", nombre:"Corazones",         desc:"Esqueleto fucsia + short de corazones",  talla:"S/M", precio:25000, img:"img/p-corazones.webp"},
   {ref:"NS-P03", cat:"pijamas", nombre:"Tacitas",           desc:"Esqueleto negro + short lila de tacitas", talla:"S/M", precio:25000, img:"img/p-tazas.webp"},
@@ -389,7 +415,24 @@ var PRODUCTOS = [
 
 var $ = function(id){return document.getElementById(id)};
 var fmt = function(n){return "$" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g,".")};
-var tallaTxt = function(p){return p.talla ? p.talla : (p.agotado ? "—" : "Consultar")};
+function esSP(p){ return !!p && p.cat===SOBRE_PEDIDO.cat; }
+function grupoDe(p){ return esSP(p) ? p.ref.replace(/[MHN]$/,"") : p.ref; }
+var ordenVar = {"Mujer":1,"Hombre":2,"Niño":3};
+function variantes(p){ var g=grupoDe(p); return PRODUCTOS.filter(function(x){ return esSP(x) && !x.agotado && grupoDe(x)===g; })
+  .sort(function(a,b){ return (ordenVar[a.talla]||9)-(ordenVar[b.talla]||9); }); }
+function spCant(){ var n=0; for(var r in cart){ if(esSP(byRef(r))) n+=cart[r]; } return n; }
+function spNota(largo){ var t="🚚 Sobre pedido · llega en "+SOBRE_PEDIDO.llegada;
+  var h=new Date(), md=("0"+(h.getMonth()+1)).slice(-2)+"-"+("0"+h.getDate()).slice(-2);
+  if(TEMP && TEMP.id==="navidad" && md<=SOBRE_PEDIDO.hasta) t+= largo ? ". Para tenerla en Navidad pide hasta el "+SOBRE_PEDIDO.hastaTxt+"." : " · Para Navidad pide hasta el "+SOBRE_PEDIDO.hastaTxt;
+  return t; }
+function varsHTML(p){
+  return '<div class="vars">'+variantes(p).map(function(v){ var c=cart[v.ref]||0;
+    return '<button class="var'+(c?' in':'')+'" data-var="'+v.ref+'"><span>'+esc(v.talla)+'</span><b>'+fmt(v.precio)+'</b><i>'+(c?'×'+c:'+')+'</i></button>'; }).join("")+
+    '</div><div class="minsp">Mínimo '+SOBRE_PEDIDO.minimo+' conjuntos · puedes combinar diseños y tallas</div>';
+}
+function bindVars(el, after){ var bs=el.querySelectorAll(".var"); for(var i=0;i<bs.length;i++) (function(b){ b.onclick=function(){ add(byRef(b.getAttribute("data-var"))); after&&after(); }; })(bs[i]); }
+function nombreLinea(p){ return esSP(p) ? p.nombre+" – "+p.talla : p.nombre; }
+var tallaTxt = function(p){ if(esSP(p)) return "Única"; return p.talla ? p.talla : (p.agotado ? "—" : "Consultar")};
 var waLink = function(t){return "https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(t)};
 var catName = function(id){ for(var i=0;i<CATEGORIAS.length;i++) if(CATEGORIAS[i].id===id) return CATEGORIAS[i].nombre; return ""; };
 var store = {get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}}, set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -464,8 +507,10 @@ function btnHTML(p){
 function render(){
   var g = $("grid"), n = 0, k = 0;
   g.innerHTML = "";
+  var vistos = {};
   PRODUCTOS.filter(function(p){return !p.agotado}).concat(PRODUCTOS.filter(function(p){return p.agotado})).forEach(function(p){
     if(!match(p)) return;
+    if(esSP(p)){ if(vistos[grupoDe(p)]) return; vistos[grupoDe(p)]=1; n++; return tarjetaSP(g,p,k++); }
     n++;
     var c = document.createElement("article"); c.className = "card"+(esTemp(p)?" xm":"")+(p.agotado?(p.apartada?" sold apt":" sold"):"");
     c.innerHTML =
@@ -487,7 +532,25 @@ function render(){
   $("secTitle").textContent = state.cat==="todo" ? "Toda la colección" : state.cat==="temporada" ? TEMP.titulo : catName(state.cat);
   $("empty").style.display = n? "none":"block";
 }
+function tarjetaSP(g,p,k){
+  var vs=variantes(p); if(!vs.length) return;
+  var min=Math.min.apply(null, vs.map(function(v){return v.precio}));
+  var c=document.createElement("article"); c.className="card fam"+(esTemp(p)?" xm":"");
+  c.innerHTML='<div class="ph"><img loading="lazy" decoding="async" src="'+p.img+'" alt="'+esc(p.nombre)+'">'+
+    '<div class="badge"><span class="b-cat">'+catName(p.cat)+'</span>'+(esTemp(p)?'<span class="b-xm">'+TEMP.insignia+'</span>':'')+'</div>'+
+    '<span class="ref">'+grupoDe(p)+'</span></div>'+
+    '<div class="info"><div class="name">'+esc(p.nombre)+'</div><div class="desc">'+esc(p.desc)+'</div>'+
+    '<div class="size">Talla: <b>Única</b></div><div class="sp">'+spNota()+'</div>'+
+    '<div class="price-row"><div class="price">Desde '+fmt(min)+'</div><div class="gift">🎁 Para combinar en pareja y familia</div></div>'+
+    varsHTML(p)+'</div>';
+  c.querySelector(".ph").onclick=function(){ openProduct(p); };
+  bindVars(c);
+  c.style.transitionDelay=Math.min(k,8)*55+"ms"; g.appendChild(c);
+  if(io) io.observe(c); else c.classList.add("show");
+}
 function refreshButtons(){
+  var vb=document.querySelectorAll(".var[data-var]");
+  for(var j=0;j<vb.length;j++){ var r=vb[j].getAttribute("data-var"), q=cart[r]||0; vb[j].className="var"+(q?" in":""); vb[j].querySelector("i").textContent=q?"×"+q:"+"; }
   var bs = document.querySelectorAll(".card .add[data-ref]");
   for(var i=0;i<bs.length;i++){ var p=byRef(bs[i].getAttribute("data-ref")); if(!p) continue;
     if(cart[p.ref]){ bs[i].className="add in"; bs[i].textContent="✓ En tu pedido ("+cart[p.ref]+")"; }
@@ -497,11 +560,12 @@ function refreshButtons(){
 /* ---- Carrito ---- */
 var toastT;
 function toast(t){ var el=$("toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(function(){el.classList.remove("on")},1800); }
-function maxDe(p){ return p.disp==null ? 99 : p.disp; }
+function maxDe(p){ return (esSP(p) || p.disp==null) ? 99 : p.disp; }
 function add(p){
   if((cart[p.ref]||0) >= maxDe(p)){ toast(maxDe(p)===1 ? "Solo hay 1 unidad de "+p.nombre : "Solo hay "+maxDe(p)+" unidades de "+p.nombre); return; }
   cart[p.ref] = (cart[p.ref]||0)+1; save(); refreshButtons(); updBar(true);
-  toast("¡"+p.nombre+" agregado a tu pedido! 🎁");
+  if(esSP(p)){ var faltan=SOBRE_PEDIDO.minimo-spCant(); toast(faltan>0 ? "✓ "+p.talla+" agregado · faltan "+faltan+" para el mínimo" : "✓ "+p.talla+" agregado a tu pedido 🎁"); }
+  else toast("¡"+p.nombre+" agregado a tu pedido! 🎁");
   if(navigator.vibrate) try{navigator.vibrate(18)}catch(e){}
 }
 function totals(){
@@ -518,8 +582,9 @@ function updBar(bump){
 }
 function message(){
   var t = totals(), L = ["¡Hola Nasao! Quiero hacer este pedido ("+pedidoId+"):",""];
-  for(var r in cart){ var p=byRef(r); L.push("• "+cart[r]+" x "+p.nombre+" ("+p.ref+") – Talla "+tallaTxt(p)+" – "+fmt(p.precio*cart[r])); }
+  for(var r in cart){ var p=byRef(r); L.push("• "+cart[r]+" x "+nombreLinea(p)+" ("+p.ref+") – Talla "+tallaTxt(p)+" – "+fmt(p.precio*cart[r])); }
   L.push("","*Total: "+fmt(t.total)+"*","");
+  if(spCant()) L.push("_Pijamas sobre pedido ("+spCant()+" conjuntos): llegan en "+SOBRE_PEDIDO.llegada+"_","");
   if($("cGift").checked) L.push("*Es para regalo*");
   var nm=$("cName").value.trim(), ci=$("cCity").value.trim();
   if(nm) L.push("Nombre: "+nm);
@@ -534,7 +599,7 @@ function renderCart(){
   if(!t.items) box.innerHTML='<p style="padding:24px 0;color:#7c6a74;text-align:center">Tu pedido está vacío. ¡Elige algo lindo! ✨</p>';
   Object.keys(cart).forEach(function(r){
     var p=byRef(r), d=document.createElement("div"); d.className="it";
-    d.innerHTML='<img src="'+p.img+'" alt=""><div class="t"><b>'+esc(p.nombre)+'</b><small>'+p.ref+' · Talla '+tallaTxt(p)+' · '+fmt(p.precio)+'</small></div>'+
+    d.innerHTML='<img src="'+p.img+'" alt=""><div class="t"><b>'+esc(nombreLinea(p))+'</b><small>'+p.ref+' · Talla '+tallaTxt(p)+' · '+fmt(p.precio)+'</small></div>'+
       '<div class="qty"><button aria-label="Quitar uno">−</button><span>'+cart[r]+'</span><button aria-label="Agregar uno">+</button></div>';
     var b=d.querySelectorAll(".qty button");
     b[0].onclick=function(){ cart[r]--; if(cart[r]<=0) delete cart[r]; save(); renderCart(); refreshButtons(); updBar(); };
@@ -542,7 +607,7 @@ function renderCart(){
     box.appendChild(d);
   });
   /* Sugerencias: productos que aún no están en el pedido (primero los de temporada) */
-  var sug = PRODUCTOS.filter(function(p){ return !cart[p.ref] && !p.agotado; })
+  var sug = PRODUCTOS.filter(function(p){ return !cart[p.ref] && !p.agotado && !esSP(p); })
     .sort(function(a,b){ return (esTemp(b)?1:0)-(esTemp(a)?1:0); }).slice(0,6);
   var ups=$("ups"); ups.innerHTML="";
   $("upsell").style.display = (t.items && sug.length) ? "block":"none";
@@ -561,24 +626,32 @@ function nuevoPedidoId(){ pedidoId = "N" + Date.now().toString(36).toUpperCase()
 function updLink(){
   var s=$("send"), t=totals();
   if(!pedidoId) nuevoPedidoId();
-  s.className = "send" + (t.items && datosOk() ? "":" off");
+  var sp=spCant(), minOk = !sp || sp>=SOBRE_PEDIDO.minimo;
+  $("minSP").style.display = minOk ? "none":"block";
+  $("minSP").textContent = "Las pijamas sobre pedido son mínimo "+SOBRE_PEDIDO.minimo+" conjuntos (llevas "+sp+"). Puedes combinar diseños y tallas.";
+  s.className = "send" + (t.items && datosOk() && minOk ? "":" off");
   $("faltan").style.display = (t.items && !datosOk()) ? "block":"none";
   s.href = waLink(message());
 }
 ["cName","cPhone","cCity","cDeliv","cGift"].forEach(function(id){ $(id).addEventListener("input",updLink); $(id).addEventListener("change",updLink); });
 $("send").addEventListener("click",function(){
-  if(!datosOk() || !totals().items) return;
+  if(!datosOk() || !totals().items || (spCant() && spCant()<SOBRE_PEDIDO.minimo)) return;
   var items = Object.keys(cart).map(function(r){ return {ref:r, cant:cart[r]}; });
   var body = JSON.stringify({pedido:pedidoId, cliente:$("cName").value.trim(), celular:$("cPhone").value.trim(),
     barrio:$("cCity").value.trim(), entrega:$("cDeliv").value, regalo:$("cGift").checked, items:items});
   if(MOTOR){ try{ if(!(navigator.sendBeacon && navigator.sendBeacon(MOTOR, new Blob([body],{type:"text/plain"})))) fetch(MOTOR,{method:"POST",body:body,mode:"no-cors",keepalive:true}); }catch(e){} }
-  items.forEach(function(it){ var p=byRef(it.ref); if(p){ p.agotado=true; p.apartada=true; } });
+  items.forEach(function(it){ var p=byRef(it.ref); if(p && !esSP(p)){ p.agotado=true; p.apartada=true; } });
   setTimeout(function(){ cart={}; save(); nuevoPedidoId(); hide($("cartOv")); render(); updBar(); toast("¡Pedido enviado! Te respondemos por WhatsApp 💬"); store.set("nasao_motor",null); }, 600);
 });
 
 /* ---- Detalle de producto ---- */
 function openProduct(p){
   $("pmImg").src = p.img; $("pmImg").alt = p.nombre;
+  if(esSP(p)){
+    $("pmBody").innerHTML='<div class="name">'+esc(p.nombre)+'</div><div class="desc">'+esc(p.desc)+' · '+grupoDe(p)+'</div>'+
+      '<div class="size">Talla: <b>Única</b> · Mujer, hombre y niño</div><div class="sp">'+spNota(true)+'</div>'+varsHTML(p);
+    bindVars($("pmBody"), function(){ openProduct(p); }); show("pmOv"); return;
+  }
   $("pmBody").innerHTML = '<div class="name">'+esc(p.nombre)+'</div><div class="desc">'+esc(p.desc)+' · '+p.ref+'</div>'+
     '<div class="size">Talla: <b>'+tallaTxt(p)+'</b></div><div class="price">'+fmt(p.precio)+'</div>'+
     '<div class="gift">🎁 Ideal para regalar</div>'+btnHTML(p);
