@@ -46,6 +46,23 @@ img{display:block;max-width:100%}
 /* Top ribbon */
 .ribbon{background:linear-gradient(90deg,var(--pine),#138257,var(--pine));color:#fff;font-size:13px;font-weight:800;text-align:center;padding:7px 10px;letter-spacing:.2px}
 .ribbon b{color:var(--gold)}
+.pstrip{display:block;width:100%;background:linear-gradient(90deg,#b81d36,#e0304a,#b81d36);color:#fff;font-size:13px;font-weight:900;text-align:center;padding:7px 10px;letter-spacing:.2px;border:0}
+.pstrip b{color:#ffe08a;font-variant-numeric:tabular-nums}
+.b-promo{background:linear-gradient(90deg,#ff4d64,#e0304a);color:#fff}
+.ppop{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:45;width:min(330px,calc(100% - 90px));background:#fff;border-radius:18px;box-shadow:0 18px 40px -12px rgba(60,10,30,.55);border:2px solid var(--gold);padding:12px 12px 12px 14px;transform:translateY(30px) scale(.96);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.9,.3,1.2),opacity .25s}
+.ppop.on{transform:none;opacity:1;pointer-events:auto}
+.ppop .px{position:absolute;right:6px;top:4px;width:28px;height:28px;border-radius:50%;font-size:18px;color:var(--muted);background:none}
+.ppop .pt{font-size:11px;font-weight:900;color:var(--red-d);letter-spacing:.6px;text-transform:uppercase}
+.ppop h5{font-size:16px;font-weight:900;line-height:1.2;margin:2px 26px 2px 0}
+.ppop p{font-size:12.5px;color:var(--muted)}
+.ppop .clock{display:flex;gap:5px;margin:8px 0 9px}
+.ppop .clock span{background:var(--ink);color:#fff;border-radius:8px;padding:4px 7px;font-weight:900;font-size:16px;font-variant-numeric:tabular-nums;min-width:38px;text-align:center}
+.ppop .clock small{display:block;font-size:8.5px;font-weight:700;color:#d8c8d0;letter-spacing:.4px}
+.ppop .pgo{display:block;width:100%;background:linear-gradient(180deg,#ff4d64,var(--red));color:#fff;border-radius:11px;padding:9px;font-weight:900;font-size:14px;box-shadow:0 3px 0 var(--red-d)}
+.drow{display:flex;justify-content:space-between;font-size:13.5px;font-weight:800;margin-bottom:4px;color:var(--muted)}
+.drow.pr{color:var(--red-d)}
+.save{background:#ecfbf1;border:1.5px dashed var(--wa);color:var(--wa-d);border-radius:12px;padding:7px 10px;font-weight:900;font-size:14px;text-align:center;margin-bottom:10px}
+.nudge{background:#fff4e0;border:1.5px solid var(--gold);border-radius:12px;padding:8px 10px;font-size:13px;font-weight:800;color:var(--berry);margin:10px 0 2px}
 
 /* Hero */
 .hero{position:relative;overflow:hidden;color:#fff;background:linear-gradient(160deg,var(--plum) 0%,var(--berry) 55%,var(--wine) 100%);padding:22px 0 30px;border-bottom:4px solid var(--gold)}
@@ -254,6 +271,7 @@ footer a{color:var(--wa-d);font-weight:900;text-decoration:none}
 <body>
 <canvas id="snow" aria-hidden="true"></canvas>
 
+<button class="pstrip" id="pStrip" hidden></button>
 <div class="ribbon" id="ribbon">🎁 Perfectas para regalar · Pide por WhatsApp en 1 minuto</div>
 
 <header class="hero">
@@ -355,7 +373,9 @@ footer a{color:var(--wa-d);font-weight:900;text-decoration:none}
       <div id="payBox"></div>
     </div>
     <div class="sh-f">
+      <div id="dRows"></div>
       <div class="tot"><span>Total</span><b id="total">$0</b></div>
+      <div class="save" id="saveBox" hidden></div>
       <a class="send" id="send" href="#" target="_blank" rel="noopener">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2z"/></svg>
         Enviar pedido por WhatsApp
@@ -365,6 +385,14 @@ footer a{color:var(--wa-d);font-weight:900;text-decoration:none}
       <p class="note">Se abre WhatsApp con tu pedido listo. Allí confirmamos disponibilidad, entrega y pago.</p>
     </div>
   </div>
+</div>
+
+<!-- Ventana de promoción -->
+<div class="ppop" id="pPop" role="dialog" aria-label="Promoción">
+  <button class="px" id="pPopX" aria-label="Cerrar">×</button>
+  <div class="pt" id="pPopT"></div><h5 id="pPopH"></h5><p id="pPopP"></p>
+  <div class="clock" id="pPopC"></div>
+  <button class="pgo" id="pPopGo">Ver promo 🔥</button>
 </div>
 
 <!-- Tirilla / recibo -->
@@ -407,6 +435,15 @@ function esTemp(p){ return !!(TEMP && p.temporada===TEMP.id); }
    (se pueden combinar diseños y tallas) y se agrupan en una tarjeta por diseño.
    Refs: NS-F01M (Mujer) · NS-F01H (Hombre) · NS-F01N (Niño). "hasta" = último día para pedir para Navidad (mes-día). */
 var SOBRE_PEDIDO = {cat:"familia", minimo:3, llegada:"8 a 10 días", hasta:"12-12", hastaTxt:"12 de diciembre", anticipo:0.5};
+/* PROMOS: combos con fecha real de inicio y fin (el reloj cuenta hasta el final real, nunca se reinicia).
+   cat = categoría que entra · excluir = refs que no entran · cant = cuántas prendas forman el combo · precio = precio del combo
+   horas = [desde, hasta) en horas del día (opcional, p. ej. hora feliz) · fin = último momento de la promo */
+var PROMOS = [
+  {id:"hora-feliz-buzos", tipo:"⚡ Hora feliz", titulo:"2 buzos estampados por $49.900", corto:"2 x $49.900", cat:"buzos", excluir:["NS-B01"], cant:2, precio:49900,
+   inicio:"2026-11-13T00:00", fin:"2026-12-24T22:00", horas:[19,22], texto:"Solo de 7 a 10 p. m."},
+  {id:"combo-pijamas", tipo:"🔥 Combo de la semana", titulo:"2 pijamas por $45.000", corto:"2 x $45.000", cat:"pijamas", excluir:[], cant:2, precio:45000,
+   inicio:"2026-11-13T00:00", fin:"2026-11-22T23:59", texto:"Combina los diseños que quieras."}
+];
 /* PAGO: datos que ve el cliente para consignar. qr = ruta de la imagen del QR (ej. "img/qr-nequi.png"); vacío = no se muestra. */
 var PAGO = {nequi:"3204886612", nequiTxt:"320 488 6612", llave:"@daniel6155", titular:"DANIEL ESTIVEN GONZALEZ ALVARES", qr:""};
 var CATEGORIAS = [
@@ -466,6 +503,27 @@ function varsHTML(p){
     '</div><div class="minsp">Mínimo '+SOBRE_PEDIDO.minimo+' conjuntos · puedes combinar diseños y tallas</div>';
 }
 function bindVars(el, after){ var bs=el.querySelectorAll(".var"); for(var i=0;i<bs.length;i++) (function(b){ b.onclick=function(){ add(byRef(b.getAttribute("data-var"))); after&&after(); }; })(bs[i]); }
+/* ---- Promociones ---- */
+function fechaP(t){ var p=t.split(/[-T:]/); return new Date(+p[0],+p[1]-1,+p[2],+(p[3]||0),+(p[4]||0)); }
+function promoActiva(pr,now){ now=now||new Date(); if(now<fechaP(pr.inicio) || now>fechaP(pr.fin)) return false;
+  if(pr.horas){ var h=now.getHours()+now.getMinutes()/60; return h>=pr.horas[0] && h<pr.horas[1]; } return true; }
+function promoFin(pr,now){ now=now||new Date(); var f=fechaP(pr.fin);
+  if(pr.horas){ var e=new Date(now.getFullYear(),now.getMonth(),now.getDate(),pr.horas[1],0,0); return e<f?e:f; } return f; }
+function promosActivas(){ var n=new Date(); return PROMOS.filter(function(pr){ return promoActiva(pr,n); }); }
+function entraEn(pr,p){ return !!p && !p.agotado && p.cat===pr.cat && pr.excluir.indexOf(p.ref)<0 && !esSP(p); }
+function promoDe(p){ var a=promosActivas(); for(var i=0;i<a.length;i++) if(entraEn(a[i],p)) return a[i]; return null; }
+function descuentos(){
+  var out=[];
+  promosActivas().forEach(function(pr){
+    var u=[]; for(var r in cart){ var p=byRef(r); if(entraEn(pr,p)) for(var k=0;k<cart[r];k++) u.push(p.precio); }
+    u.sort(function(a,b){return b-a}); var combos=Math.floor(u.length/pr.cant), ah=0;
+    for(var c=0;c<combos;c++){ var s=0; for(var j=0;j<pr.cant;j++) s+=u[c*pr.cant+j]; ah+=Math.max(0,s-pr.precio); }
+    out.push({pr:pr, combos:combos, ahorro:ah, sueltas:u.length%pr.cant});
+  });
+  return out;
+}
+function reloj(ms){ ms=Math.max(0,ms); var s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), x=s%60;
+  return {d:d,h:h,m:m,s:x,txt:(d?d+"d ":"")+("0"+h).slice(-2)+":"+("0"+m).slice(-2)+":"+("0"+x).slice(-2)}; }
 function spTotal(){ var n=0; for(var r in cart){ var p=byRef(r); if(esSP(p)) n+=cart[r]*p.precio; } return n; }
 function anticipo(){ return Math.ceil(spTotal()*SOBRE_PEDIDO.anticipo/50)*50; }
 function payHTML(ant){
@@ -567,7 +625,7 @@ function render(){
     var c = document.createElement("article"); c.className = "card"+(esTemp(p)?" xm":"")+(p.agotado?(p.apartada?" sold apt":" sold"):"");
     c.innerHTML =
       '<div class="ph"><img loading="lazy" decoding="async" src="'+p.img+'" alt="'+esc(p.nombre)+'">'+
-      '<div class="badge"><span class="b-cat">'+catName(p.cat)+'</span>'+(esTemp(p)?'<span class="b-xm">'+TEMP.insignia+'</span>':'')+'</div>'+
+      '<div class="badge"><span class="b-cat">'+catName(p.cat)+'</span>'+(promoDe(p)?'<span class="b-promo">🔥 '+promoDe(p).corto+'</span>':'')+(esTemp(p)?'<span class="b-xm">'+TEMP.insignia+'</span>':'')+'</div>'+
       '<span class="ref">'+p.ref+'</span></div>'+
       '<div class="info"><div class="name">'+esc(p.nombre)+'</div><div class="desc">'+esc(p.desc)+'</div>'+
       '<div class="size">Talla: <b>'+tallaTxt(p)+'</b>'+(!p.agotado && p.disp>1 ? ' · <span class="units">'+p.disp+' disponibles</span>':'')+'</div>'+
@@ -621,9 +679,10 @@ function add(p){
   if(navigator.vibrate) try{navigator.vibrate(18)}catch(e){}
 }
 function totals(){
-  var items=0,total=0;
-  for(var r in cart){ var p=byRef(r); if(!p||p.agotado){delete cart[r];continue;} items+=cart[r]; total+=cart[r]*p.precio; }
-  return {items:items,total:total};
+  var items=0,sub=0;
+  for(var r in cart){ var p=byRef(r); if(!p||p.agotado){delete cart[r];continue;} items+=cart[r]; sub+=cart[r]*p.precio; }
+  var ds=descuentos().filter(function(d){return d.ahorro>0}), ah=0; ds.forEach(function(d){ ah+=d.ahorro; });
+  return {items:items, subtotal:sub, ahorro:ah, desc:ds, total:sub-ah};
 }
 function updBar(bump){
   var t = totals();
@@ -635,7 +694,11 @@ function updBar(bump){
 function message(){
   var t = totals(), L = ["¡Hola Nasao! Quiero hacer este pedido ("+pedidoId+"):",""];
   for(var r in cart){ var p=byRef(r); L.push("• "+cart[r]+" x "+nombreLinea(p)+" ("+p.ref+") – Talla "+tallaTxt(p)+" – "+fmt(p.precio*cart[r])); }
-  L.push("","*Total: "+fmt(t.total)+"*","");
+  if(t.ahorro){ L.push("","Subtotal: "+fmt(t.subtotal));
+    t.desc.forEach(function(d){ L.push("🔥 "+d.pr.titulo+(d.combos>1?" (x"+d.combos+")":"")+": -"+fmt(d.ahorro)); }); }
+  L.push("","*Total: "+fmt(t.total)+"*");
+  if(t.ahorro) L.push("*¡Ahorro con la promo: "+fmt(t.ahorro)+"!*");
+  L.push("");
   if(spCant()){ var an=anticipo();
     L.push("_Pijamas sobre pedido ("+spCant()+" conjuntos): llegan en "+SOBRE_PEDIDO.llegada+"_");
     L.push("*Anticipo 50 % para confirmar: "+fmt(an)+"*","Saldo al recibir: "+fmt(t.total-an),"");
@@ -674,6 +737,14 @@ function renderCart(){
     ups.appendChild(u);
   });
   $("total").textContent = fmt(t.total);
+  $("dRows").innerHTML = t.ahorro ? '<div class="drow"><span>Subtotal</span><span>'+fmt(t.subtotal)+'</span></div>'+
+    t.desc.map(function(d){ return '<div class="drow pr"><span>🔥 '+esc(d.pr.titulo)+(d.combos>1?' (x'+d.combos+')':'')+'</span><span>-'+fmt(d.ahorro)+'</span></div>'; }).join("") : "";
+  $("saveBox").hidden = !t.ahorro; $("saveBox").textContent = "🎉 ¡Ahorraste "+fmt(t.ahorro)+" con la promo!";
+  var nd = descuentos().filter(function(d){ return d.sueltas>0; })[0];
+  var old=$("nudgeBox"); if(old) old.remove();
+  if(nd && t.items){ var nb=document.createElement("div"); nb.className="nudge"; nb.id="nudgeBox";
+    var falta=nd.pr.cant-nd.sueltas; nb.textContent="🔥 Agrega "+falta+" "+(nd.pr.cat==="pijamas"?(falta>1?"pijamas":"pijama"):(falta>1?"buzos":"buzo"))+" más y llévate "+nd.pr.titulo.replace(/^\d+ /,"las "+nd.pr.cant+" ").replace(" por "," por ")+".";
+    box.parentNode.insertBefore(nb, box.nextSibling); }
   $("payBox").innerHTML = t.items ? payHTML(anticipo()) : "";
   updLink();
 }
@@ -707,7 +778,8 @@ function datosRecibo(){
   var t=totals(), an=anticipo(), L=[];
   for(var r in cart){ var p=byRef(r); L.push({c:cart[r], n:nombreLinea(p), ref:p.ref, v:p.precio*cart[r], sp:esSP(p)}); }
   return {id:pedidoId, fecha:new Date(), cliente:$("cName").value.trim(), entrega:$("cDeliv").value, regalo:$("cGift").checked,
-    items:L, total:t.total, anticipo:an, saldo:t.total-an, sp:spCant(), wa:$("send").href};
+    items:L, subtotal:t.subtotal, ahorro:t.ahorro, desc:t.desc.map(function(d){ return {t:catName(d.pr.cat)+" "+d.pr.corto+(d.combos>1?" (x"+d.combos+")":""), v:d.ahorro}; }),
+    total:t.total, anticipo:an, saldo:t.total-an, sp:spCant(), wa:$("send").href};
 }
 function dibujarRecibo(d){
   var W=600, P=34, cv=document.createElement("canvas"), x=cv.getContext("2d"), lh=30, ops=[], y=0;
@@ -717,7 +789,9 @@ function dibujarRecibo(d){
   line("Pedido: "+d.id,{bold:1}); line("Fecha: "+d.fecha.toLocaleDateString("es-CO")+" "+d.fecha.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}));
   line("Cliente: "+d.cliente); line("Entrega: "+d.entrega); if(d.regalo) line("🎁 Es para regalo"); sep();
   d.items.forEach(function(it){ line(it.c+" x "+it.n,{bold:1,wrap:1}); line(it.ref+(it.sp?" · sobre pedido":""),{muted:1,size:17,right:fmt(it.v),h:28}); }); sep();
+  if(d.ahorro){ line("Subtotal",{right:fmt(d.subtotal)}); d.desc.forEach(function(x){ line("Promo "+x.t,{red:1,size:18,right:"-"+fmt(x.v)}); }); }
   line("TOTAL",{bold:1,size:26,right:fmt(d.total),h:38});
+  if(d.ahorro) line("¡Ahorraste "+fmt(d.ahorro)+"!",{bold:1,center:1,red:1,h:34});
   if(d.sp){ line("Anticipo 50 % para confirmar",{bold:1,right:fmt(d.anticipo),red:1}); line("Saldo al recibir",{right:fmt(d.saldo)});
     sep(); line("Sobre pedido: llega en "+SOBRE_PEDIDO.llegada,{size:18}); }
   sep(); line("PAGO",{bold:1}); line("Nequi: "+PAGO.nequiTxt); line("Llave: "+PAGO.llave); line(PAGO.titular,{size:16,muted:1});
@@ -813,6 +887,37 @@ $("q").addEventListener("input",function(){ state.q=this.value; render(); });
 /* Barra de filtros: cuando queda pegada arriba tapa también la franja del reloj del celular */
 (function(){ var se=$("stickSentinel"); if(!se || !("IntersectionObserver" in window)) return;
   new IntersectionObserver(function(es){ $("catalogo").classList.toggle("stuck", !es[0].isIntersecting); }).observe(se); })();
+
+/* ---- Franja y ventana de promoción ---- */
+(function(){
+  var popVisto = {}; try{ popVisto = JSON.parse(sessionStorage.getItem("nasao_pop")||"{}"); }catch(e){}
+  var actual = null, firma = "";
+  function urgente(){ var a=promosActivas(); a.sort(function(x,y){ return promoFin(x)-promoFin(y); }); return a[0]||null; }
+  function proxima(){ var n=new Date(); for(var i=0;i<PROMOS.length;i++){ var pr=PROMOS[i]; if(!pr.horas || promoActiva(pr,n)) continue;
+      var ini=new Date(n.getFullYear(),n.getMonth(),n.getDate(),pr.horas[0],0,0); if(ini>n && ini>=fechaP(pr.inicio) && ini<=fechaP(pr.fin)) return {pr:pr,ini:ini}; } return null; }
+  function irA(pr){ state.cat=pr.cat; construirFiltros(); render(); $("pPop").classList.remove("on");
+    var c=$("catalogo"); if(c) window.scrollTo({top:c.getBoundingClientRect().top+window.pageYOffset-4,behavior:"smooth"}); }
+  function tick(){
+    var u=urgente(), f=promosActivas().map(function(p){return p.id}).join(",");
+    if(f!==firma){ firma=f; if(typeof render==="function"){ render(); updBar(); if($("cartOv").classList.contains("show")) renderCart(); } }
+    var st=$("pStrip");
+    if(u){ var r=reloj(promoFin(u)-new Date()); st.hidden=false; st.innerHTML=u.tipo+" · "+esc(u.titulo)+" · termina en <b>"+r.txt+"</b>"; st.onclick=function(){ irA(u); };
+      if(actual!==u.id){ actual=u.id; $("pPopT").textContent=u.tipo; $("pPopH").textContent=u.titulo; $("pPopP").textContent=u.texto||""; $("pPopGo").onclick=function(){ irA(u); }; }
+      var lab=r.d?[[r.d,"DÍAS"],[r.h,"HORAS"],[r.m,"MIN"]]:[[r.h,"HORAS"],[r.m,"MIN"],[r.s,"SEG"]];
+      $("pPopC").innerHTML=lab.map(function(x){ return '<span>'+("0"+x[0]).slice(-2)+'<small>'+x[1]+'</small></span>'; }).join("");
+    } else {
+      var px=proxima();
+      if(px){ st.hidden=false; st.innerHTML=px.pr.tipo+" hoy desde las "+(px.pr.horas[0]>12?px.pr.horas[0]-12+" p. m.":px.pr.horas[0]+" a. m.")+" · "+esc(px.pr.titulo); st.onclick=null; }
+      else st.hidden=true;
+      $("pPop").classList.remove("on"); actual=null;
+    }
+  }
+  tick(); setInterval(tick,1000);
+  setTimeout(function(){ var u=urgente(); if(!u || popVisto[u.id]) return;
+    if($("cartOv").classList.contains("show") || $("pmOv").classList.contains("show")) return;
+    $("pPop").classList.add("on"); popVisto[u.id]=1; try{ sessionStorage.setItem("nasao_pop",JSON.stringify(popVisto)); }catch(e){} }, 6000);
+  $("pPopX").onclick=function(){ $("pPop").classList.remove("on"); };
+})();
 
 function construirFiltros(){
   hayTemporada = PRODUCTOS.some(esTemp);
